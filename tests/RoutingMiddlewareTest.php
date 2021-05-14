@@ -10,41 +10,29 @@ use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\Response;
 use PHPUnit\Framework\TestCase;
 use pj\routing\RoutingMiddleware;
-use Symfony\Component\Routing\Exception\NoConfigurationException;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-
+use Symfony\Component\Routing\Exception\NoConfigurationException;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
 
 class RoutingMiddlewareTest extends TestCase
 {
     /**
      * @test
-     */
-    public function itThrowsNoConfigurationExceptionWhenNoRoutesAreConfigured()
-    {
-        $this->expectException(NoConfigurationException::class);
-        $middleware = RoutingMiddleware::create(new RouteCollection());
-        $middleware->process(
-            ServerRequestFactory::fromGlobals(),
-            $this->createMock(RequestHandlerInterface::class)
-        );
-    }
-
-    /**
-     * @test
      * @dataProvider routeExpectations
      */
-    public function itMatchesWithTheRequestToFindTheRightRoute(ServerRequestInterface $serverRequest, array $middlewares)
-    {
-        $middleware = RoutingMiddleware::create($this->createRouteCollection());
-        $middleware->process(
+    public function itMatchesWithTheRequestToFindTheRightRoute(
+        ServerRequestInterface $serverRequest,
+        array $attributes
+    ): void {
+        RoutingMiddleware::create($this->createRouteCollection())->process(
             $serverRequest,
             $this->createRequestHandler(
                 fn (ServerRequestInterface $request) =>
-                $this->assertEquals($middlewares, $request->getAttributes()['middlewares'])
+                $this->assertEquals($attributes, $request->getAttributes())
             )
         );
     }
@@ -52,17 +40,25 @@ class RoutingMiddlewareTest extends TestCase
     /**
      * @test
      */
-    public function itSetsEmptyMiddlewareAttributeWhenNoMiddlewareDeclaredInRouting()
+    public function itThrowsNoConfigurationExceptionWhenNoRoutesAreConfigured()
     {
-
+        $this->expectException(NoConfigurationException::class);
+        RoutingMiddleware::create(new RouteCollection())->process(
+            ServerRequestFactory::fromGlobals(),
+            $this->createMock(RequestHandlerInterface::class)
+        );
     }
 
     /**
      * @test
      */
-    public function itPassesTheMiddlewaresFromRoutingUnderMiddlewaresAttribute()
+    public function itThrowsResourceNotFoundExceptionWhenNoRouteMatches(): void
     {
-
+        $this->expectException(ResourceNotFoundException::class);
+        RoutingMiddleware::create($this->createRouteCollection())->process(
+            new ServerRequest([], [], '/wrong-path'),
+            $this->createMock(RequestHandlerInterface::class)
+        );
     }
 
     private function createRequestHandler(Closure $checkExpectations): RequestHandlerInterface
@@ -88,22 +84,52 @@ class RoutingMiddlewareTest extends TestCase
     public function routeExpectations(): array
     {
         return [
-            [new ServerRequest(), ['home-middleware']],
-            [new ServerRequest([], [], '/test', 'GET'), ['test-middleware']],
-            [new ServerRequest([], [], '/test/123'), ['test-123-middleware']],
-            [new ServerRequest([], [], '/test', 'PUT'), ['test-put-middleware']],
-            [new ServerRequest([], [], '/test', 'POST'), ['test-post-middleware']],
+            [
+                new ServerRequest(),
+                ['key' => 'value-1', '_route' => 'home']
+            ],
+            [
+                new ServerRequest([], [], '/test', 'GET'),
+                ['key' => 'value-2', '_route' => 'test']
+            ],
+            [
+                new ServerRequest([], [], '/test/123'),
+                ['key' => 'value-3', '_route' => 'test-123']
+            ],
+            [
+                new ServerRequest([], [], '/test', 'PUT'),
+                ['key' => 'value-4', '_route' => 'test-put']
+            ],
+            [
+                new ServerRequest([], [], '/test', 'POST'),
+                ['key' => 'value-5', '_route' => 'test-post']
+            ],
         ];
     }
 
     private function createRouteCollection(): RouteCollection
     {
         $routeCollection = new RouteCollection();
-        $routeCollection->add('home', new Route('/', ['middlewares' => ['home-middleware']]));
-        $routeCollection->add('test', new Route('/test', ['middlewares' => ['test-middleware']], [], [], '', [], ['GET']));
-        $routeCollection->add('test-123', new Route('/test/123', ['middlewares' => ['test-123-middleware']]));
-        $routeCollection->add('test-put', new Route('/test', ['middlewares' => ['test-put-middleware']], [], [], '', [], ['PUT']));
-        $routeCollection->add('test-post', new Route('/test', ['middlewares' => ['test-post-middleware']], [], [], '', [], ['POST']));
+        $routeCollection->add(
+            'home',
+            new Route('/', ['key' => 'value-1'])
+        );
+        $routeCollection->add(
+            'test',
+            new Route('/test', ['key' => 'value-2'], [], [], '', [], ['GET'])
+        );
+        $routeCollection->add(
+            'test-123',
+            new Route('/test/123', ['key' => 'value-3'])
+        );
+        $routeCollection->add(
+            'test-put',
+            new Route('/test', ['key' => 'value-4'], [], [], '', [], ['PUT'])
+        );
+        $routeCollection->add(
+            'test-post',
+            new Route('/test', ['key' => 'value-5'], [], [], '', [], ['POST'])
+        );
         return $routeCollection;
     }
 }

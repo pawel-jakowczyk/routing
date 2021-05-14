@@ -9,33 +9,40 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Symfony\Component\Routing\Matcher\UrlMatcher;
-use Symfony\Component\Routing\RequestContext;
+use Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface;
 use Symfony\Component\Routing\RouteCollection;
 
-class RoutingMiddleware implements MiddlewareInterface
+final class RoutingMiddleware implements MiddlewareInterface
 {
-    private $routesCollection;
+    private HttpFoundationFactoryInterface $httpFoundationFactory;
+    private RequestMatcherFactoryInterface $requestMatcherFactory;
 
-    public function __construct(RouteCollection $routesCollection)
+    public static function create(RouteCollection $routesCollection): self
     {
-        $this->routesCollection = $routesCollection;
+        return new self(
+            new HttpFoundationFactory(),
+            new RequestMatcherFactory($routesCollection)
+        );
+    }
+
+    public function __construct(
+        HttpFoundationFactoryInterface $httpFoundationFactory,
+        RequestMatcherFactoryInterface $RequestMatcherFactory
+    ) {
+        $this->httpFoundationFactory = $httpFoundationFactory;
+        $this->requestMatcherFactory = $RequestMatcherFactory;
     }
 
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
     ): ResponseInterface {
-        $symfonyRequest = (new HttpFoundationFactory())->createRequest($request);
-        $matcher = new UrlMatcher(
-            $this->routesCollection,
-            (new RequestContext())->fromRequest($symfonyRequest)
-        );
-        $routingData = $matcher->match($symfonyRequest->getPathInfo());
-        $request = $request->withAttribute(
-            'middlewares',
-            $routingData['middlewares'] ?? []
-        );
+        $symfonyRequest = $this->httpFoundationFactory->createRequest($request);
+        $matcher = $this->requestMatcherFactory->create($symfonyRequest);
+        $routingData = $matcher->matchRequest($symfonyRequest);
+        foreach ($routingData as $key => $data) {
+            $request = $request->withAttribute($key, $data);
+        }
         return $handler->handle($request);
     }
 }

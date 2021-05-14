@@ -1,5 +1,6 @@
 {
     "name": "pawel-jakowczyk/routing",
+    "description": "",
     "require": {
         "psr/http-server-middleware": "^1.0",
         "symfony/routing": "^5.2",

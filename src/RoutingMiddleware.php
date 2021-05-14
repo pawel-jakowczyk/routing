@@ -9,38 +9,33 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface;
 use Symfony\Component\Routing\RouteCollection;
 
 final class RoutingMiddleware implements MiddlewareInterface
 {
-    private HttpFoundationFactoryInterface $httpFoundationFactory;
-    private RequestMatcherFactoryInterface $requestMatcherFactory;
+    private RequestMatcherInterface $requestMatcher;
 
-    public static function create(RouteCollection $routesCollection): self
+    public static function create(RouteCollection $routeCollection): self
     {
         return new self(
-            new HttpFoundationFactory(),
-            new RequestMatcherFactory($routesCollection)
+            new RequestMatcher(
+                new HttpFoundationFactory(),
+                $routeCollection
+            )
         );
     }
 
     public function __construct(
-        HttpFoundationFactoryInterface $httpFoundationFactory,
-        RequestMatcherFactoryInterface $RequestMatcherFactory
+        RequestMatcherInterface $requestMatcher
     ) {
-        $this->httpFoundationFactory = $httpFoundationFactory;
-        $this->requestMatcherFactory = $RequestMatcherFactory;
+        $this->requestMatcher = $requestMatcher;
     }
 
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
     ): ResponseInterface {
-        $symfonyRequest = $this->httpFoundationFactory->createRequest($request);
-        $matcher = $this->requestMatcherFactory->create($symfonyRequest);
-        $routingData = $matcher->matchRequest($symfonyRequest);
-        foreach ($routingData as $key => $data) {
+        foreach ($this->requestMatcher->match($request) as $key => $data) {
             $request = $request->withAttribute($key, $data);
         }
         return $handler->handle($request);

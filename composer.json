@@ -15,5 +15,8 @@
             "pj\\routing\\": "src/",
             "pj\\routing\\tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "tests": "vendor/bin/phpunit tests"
     }
 }

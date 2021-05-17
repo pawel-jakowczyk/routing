@@ -1,5 +1,7 @@
 # PJ routing middleware
 
+[![Tests](https://github.com/pawel-jakowczyk/routing/actions/workflows/php.yml/badge.svg)](https://github.com/pawel-jakowczyk/routing/actions/workflows/php.yml)
+
 This repository holds the RoutingMiddleware which implements the Psr\Http\Server\MiddlewareInterface.
 It can be instantiated by create method which requires symfony RouteCollection,
 or it can be instantiated by constructor which requires the RequestMatcherInterface object.

@@ -10,7 +10,7 @@ or it can be instantiated by constructor which requires the RequestMatcherInterf
 
 ```php
 use Laminas\Diactoros\ServerRequest;
-use pj\routing\RoutingMiddleware;
+use PJ\Routing\RoutingMiddleware;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;

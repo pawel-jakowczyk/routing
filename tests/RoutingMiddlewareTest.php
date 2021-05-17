@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace pj\routing\tests;
+namespace PJ\Routing\Tests;
 
 use Closure;
 use Laminas\Diactoros\ServerRequest;
 use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\Response;
 use PHPUnit\Framework\TestCase;
-use pj\routing\RoutingMiddleware;
+use PJ\Routing\RoutingMiddleware;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;

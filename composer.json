@@ -14,8 +14,8 @@
     },
     "autoload": {
         "psr-4": {
-            "pj\\routing\\": "src/",
-            "pj\\routing\\tests\\": "tests/"
+            "PJ\\Routing\\": "src/",
+            "PJ\\Routing\\Tests\\": "tests/"
         }
     },
     "scripts": {

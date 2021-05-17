@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace pj\routing;
+namespace PJ\Routing;
 
 use Psr\Http\Message\ServerRequestInterface;
 

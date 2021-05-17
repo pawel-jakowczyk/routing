@@ -1,6 +1,8 @@
 {
     "name": "pawel-jakowczyk/routing",
     "description": "RoutingMiddleware which implements the Psr MiddlewareInterface",
+    "type": "library",
+    "license": "MIT",
     "require": {
         "psr/http-server-middleware": "^1.0",
         "symfony/routing": "^5.2",

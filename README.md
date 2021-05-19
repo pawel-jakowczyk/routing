@@ -6,6 +6,10 @@ This repository holds the RoutingMiddleware which implements the Psr\Http\Server
 It can be instantiated by create method which requires symfony RouteCollection,
 or it can be instantiated by constructor which requires the RequestMatcherInterface object.
 
+## Instalation
+
+composer require pawel-jakowczyk/routing
+
 ## Usage
 
 ```php

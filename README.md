@@ -8,7 +8,7 @@ or it can be instantiated by constructor which requires the RequestMatcherInterf
 
 ## Instalation
 
-composer require pawel-jakowczyk/routing
+    composer require pawel-jakowczyk/routing
 
 ## Usage
 
